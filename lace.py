@@ -3,7 +3,7 @@ from urllib.request import urlopen as uReq
 from bs4 import BeautifulSoup as soup
 
 #url1 = 'https://www.lacelab.com/collections/luxury-leather-laces/products/black-luxury-leather-laces-gold-plated'
-url1 = 'https://www.lacelab.com/collections/ultra-boost-shoe-laces/products/black-japanese-katakana-shoe-laces'
+url1 = 'https://www.lacelab.com/collections/waxed-shoe-laces/products/black-waxed-shoe-laces'
 url2 = 'https://www.ropelacesupply.com/collections/all-shoe-laces/products/flat-red-shoe-laces'
 
 #connecting,downloading,closing webpage
@@ -14,8 +14,25 @@ uClient.close()
 #html parse
 pageSoup = soup(page_html, "html.parser")
 laceDetails = pageSoup.findAll("script",{"type":"text/javascript"})
-stringLace = str(laceDetails[10])
-meat = stringLace.splitlines()[4]
+#print(laceDetails)
+#stringLace = str(laceDetails[10])
+
+meat = ''
+
+for x in range(0,len(laceDetails)):
+    if laceDetails[x].find("new Shopify") != -1:
+        meat = str(laceDetails[x])
+        #print("Data found")
+    else:
+        print(laceDetails[x])
+        print()
+        print()
+        print()
+
+#meat = stringLace.splitlines()[4]
+
+
+
 
 sampleString = "inventory_quantity"
 

@@ -9,7 +9,11 @@ import datetime
 
 urls = ['https://www.lacelab.com/collections/luxury-leather-laces/products/black-luxury-leather-laces-gold-plated',
 'https://www.lacelab.com/collections/3m-reflective-rope-laces/products/black-3m-reflective-rope-laces',
-'https://www.ropelacesupply.com/collections/all-shoe-laces/products/g-o-a-t-flat-shoe-laces']
+'https://www.ropelacesupply.com/collections/all-shoe-laces/products/g-o-a-t-flat-shoe-laces',
+'https://www.ropelacesupply.com/collections/premium-leather-shoe-laces/products/gold-leather-laces-1',
+'https://www.ropelacesupply.com/collections/3m-reflective-shoe-laces/products/round-3m-black',
+'https://www.lacelab.com/collections/thin-rope-laces/products/white-roshe-style-laces',
+'https://www.lacelab.com/collections/oval-sb-foamposites-laces/products/blue-oval-sb-laces']
 
 #Containers
 laceData = ''
@@ -18,7 +22,7 @@ excelFile = 'lace.xlsx'
 def createTitleBars(currentSheet):
     currentSheet['A1'] = 'Name'
     currentSheet['B1'] = 'Price'
-    currentSheet['C1'] = 'Quantity'
+    currentSheet['C1'] = 'Inventory'
 
 def createWorkBook(excelFile):
     wb = load_workbook(excelFile)
@@ -92,12 +96,21 @@ def getBeginning():
     #Aligning the parse to accurately iterate through each item
     laceData = laceData[laceData.find(':[{"id"'):]
 
-def getOutOfStock():
+def getOutOfStock(x):
     global laceData
+    global nameList
+    global priceList
+    global quantList
     #Checking if the item is sold out
     if laceData.count(sampleString) == 0:
-        print("Item sold out")
-        sys.exit(0)
+        name = urls[x][urls[x].rfind("/") + 1 : ]
+        print(name + " sold out")
+        nameList[x] = name
+        priceList[x] = "SOLD OUT"
+        quantList[x] = "SOLD OUT"
+        return True
+    else:
+        return False
 
 def getData():
     global laceData
@@ -134,7 +147,8 @@ for x in range(0,len(urls)):
     rawScriptData = getTag(HTMLsoup)
     getLaceData(rawScriptData)
     getBeginning()
-    getOutOfStock()
+    if getOutOfStock(x) is True:
+        continue
     getData()
     clearData()
 

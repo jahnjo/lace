@@ -1,5 +1,6 @@
 import bs4 
 from openpyxl import load_workbook
+import openpyxl.utils
 from urllib.request import urlopen as uReq
 from bs4 import BeautifulSoup as soup
 import sys
@@ -21,12 +22,22 @@ excelFile = 'lace.xlsx'
 
 def createTitleBars(currentSheet):
     currentSheet['A1'] = 'Name'
-    currentSheet['B1'] = 'Price'
-    currentSheet['C1'] = 'Inventory'
+    currentSheet['B1'] = 'Size'
+    currentSheet['C1'] = 'Price'
+    currentSheet['D1'] = 'Inventory'
 
 def createWorkBook(excelFile):
     wb = load_workbook(excelFile)
     return wb
+
+def adjustNameCol(currentSheet):
+    global nameList
+    maxWidth = 0
+    for x in range(0,len(nameList)):
+        if len(nameList[x]) > maxWidth:
+            maxWidth = len(nameList[x])
+    currentSheet.column_dimensions['A'].width = (maxWidth - 6)
+    
 
 def excelInit(wb):   
     now = datetime.datetime.now()
@@ -34,14 +45,15 @@ def excelInit(wb):
     if currentDate not in wb.sheetnames:
         currentSheet = wb.create_sheet(currentDate)
     else:
-        currentSheet = wb.active
+        currentSheet = wb.create_sheet(currentDate + "_2")
     return currentSheet
 
 def populateSheet(currentSheet):
     for x in range(0,len(nameList)):
         currentSheet['A{}'.format(x+2)] = nameList[x]
-        currentSheet['B{}'.format(x+2)] = priceList[x]
-        currentSheet['C{}'.format(x+2)] = quantList[x]
+        currentSheet['B{}'.format(x+2)] = sizeList[x]
+        currentSheet['C{}'.format(x+2)] = priceList[x]
+        currentSheet['D{}'.format(x+2)] = quantList[x]
     
 
 #Used in order to find out how many different sizes/types of laces are on the page
@@ -49,6 +61,7 @@ sampleString = "inventory_quantity"
 #Containers to hold all the information
 rawList = []
 nameList = []
+sizeList = []
 priceList =[]
 quantList = []
 
@@ -101,13 +114,13 @@ def getOutOfStock(x):
     global nameList
     global priceList
     global quantList
-    #Checking if the item is sold out
+    #Checking if the item is sold out by the inventory quantity available
     if laceData.count(sampleString) == 0:
         name = urls[x][urls[x].rfind("/") + 1 : ]
         print(name + " sold out")
-        nameList[x] = name
-        priceList[x] = "SOLD OUT"
-        quantList[x] = "SOLD OUT"
+        #nameList[x] = name
+        #priceList[x] = "SOLD OUT"
+        #quantList[x] = "SOLD OUT"
         return True
     else:
         return False
@@ -134,6 +147,12 @@ def getData():
         if rawList[x].find("\"inventory_quantity\""):
             quantList.append(rawList[x][rawList[x].find("\"inventory_quantity\"") + 21 : rawList[x].find('inventory_management') - 2 ]) 
 
+def getSize():
+    global nameList
+    global sizeList
+    for x in range(0, len(nameList)):
+        sizeList.append(nameList[x][-2:])
+
 def clearData():
     global laceData
     global rawList
@@ -151,17 +170,19 @@ for x in range(0,len(urls)):
         continue
     getData()
     clearData()
+getSize()
 
 wb = createWorkBook(excelFile)
 currentSheet = excelInit(wb)
 
 createTitleBars(currentSheet)
 populateSheet(currentSheet)
+adjustNameCol(currentSheet)
 
 '''for x in range(0,len(nameList)):
-    print(nameList[x])
-    print(priceList[x]) 
-    print(quantList[x])
+    print(nameList[x] + "   " + sizeList[x])
+    #print(priceList[x]) 
+    #print(quantList[x])
     print()'''
 
 wb.save(excelFile)
